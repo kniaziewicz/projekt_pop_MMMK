@@ -7,6 +7,7 @@ import tkintermapview
 users:list=[]
 workers:list=[]
 fires:list=[]
+wremiza:list=[]
 
 #Placówki
 class User:
@@ -28,6 +29,7 @@ class User:
         print(latitude)
         return [latitude, longitude]
 
+#strażacy
 class Worker:
     def __init__(self,name,location,remiza):
         self.name = name
@@ -48,6 +50,7 @@ class Worker:
         print(latitude)
         return [latitude, longitude]
 
+#pożary
 class Fire:
     def __init__(self,name,location):
         self.name = name
@@ -67,6 +70,75 @@ class Fire:
         print(latitude)
         return [latitude, longitude]
 
+#strazacy_w_danej_remizie
+class Wremizach:
+    def __init__(self,name,location):
+        self.name = name
+        self.location = location
+        self.coordinates = self.get_coordinates()
+        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1])
+
+    def get_coordinates(self) -> list:
+        import requests
+        from bs4 import BeautifulSoup
+        url = f"https://pl.wikipedia.org/wiki/{self.location}"
+        response = requests.get(url).text
+        response_html = BeautifulSoup(response, "html.parser")
+        longitude = float(response_html.select(".longitude")[1].text.replace(",", "."))
+        latitude = float(response_html.select(".latitude")[1].text.replace(",", "."))
+        print(longitude)
+        print(latitude)
+        return [latitude, longitude]
+
+#wremiza_commands
+def make_wremiza():
+
+    for idx, val in enumerate(wremiza):
+        wremiza[idx].marker.delete()
+
+    wremiza.clear()
+    n=listbox_lista_remizy.index(ACTIVE)
+    i=users[n].name
+
+    for idx,strazak in enumerate(workers):
+        if workers[idx].remiza==i:
+            strazak = Wremizach(name=workers[idx].name,location=workers[idx].location)
+            wremiza.append(strazak)
+        workers[idx].marker.delete()
+
+    show_wremiza()
+    button_pokaz_szczegoly_worker.configure(command=show_wremiza_details)
+
+
+def show_wremiza():
+    listbox_lista_worker.delete(0,END)
+    for idx,strazak in enumerate(wremiza):
+        listbox_lista_worker.insert(idx,f'{idx+1}. {strazak.name}')
+
+def restore():
+    show_workers()
+    for idx, val in enumerate(wremiza):
+        wremiza[idx].marker.delete()
+
+    for idx, val in enumerate(workers):
+        workers[idx].coordinates = workers[idx].get_coordinates()
+        workers[idx].marker = map_widget.set_marker(workers[idx].coordinates[0], workers[idx].coordinates[1])
+
+    button_pokaz_szczegoly_worker.configure(command=show_worker_details)
+
+def show_wremiza_details():
+    i=listbox_lista_worker.index(ACTIVE)
+    name=wremiza[i].name
+    location=wremiza[i].location
+
+    label_szczegoly_wartosc_name.config(text=name)
+    label_szczegoly_wartosc_location.config(text=location)
+    label_szczegoly_wartosc_remiza.config(text='...')
+
+    map_widget.set_position(wremiza[i].coordinates[0],wremiza[i].coordinates[1])
+    map_widget.set_zoom(17)
+
+#end
 
 def add_who ():
     root = Tk()
@@ -97,13 +169,13 @@ def add_user ():
 
     show_users()
 
+    print(users)
 
 
 def show_users():
     listbox_lista_remizy.delete(0,END)
     for idx,user in enumerate(users):
         listbox_lista_remizy.insert(idx,f'{idx+1}. {user.name}')
-
 
 
 def remove_user ():
@@ -138,7 +210,7 @@ def update_user (i):
     entry_location.delete(0,END)
     entry_remiza.delete(0,END)
 
-    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_user)
+    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_who)
     show_users()
 
 def show_user_details():
@@ -146,12 +218,14 @@ def show_user_details():
     name=users[i].name
     location=users[i].location
 
+    make_wremiza()
+
     label_szczegoly_wartosc_name.config(text=name)
     label_szczegoly_wartosc_location.config(text=location)
+    label_szczegoly_wartosc_remiza.config(text='...')
 
     map_widget.set_position(users[i].coordinates[0],users[i].coordinates[1])
-    map_widget.set_zoom(17)
-
+    map_widget.set_zoom(10)
 #end
 
 #workers_command
@@ -159,7 +233,7 @@ def show_user_details():
 def add_worker ():
     zmienna_nazwa=entry_name.get()
     zmienna_coordinates=entry_location.get()
-    zmienna_remiza=entry_name.get()
+    zmienna_remiza=entry_remiza.get()
     worker = Worker(name=zmienna_nazwa, location=zmienna_coordinates, remiza=zmienna_remiza)
     workers.append(worker)
 
@@ -216,11 +290,11 @@ def update_worker (i):
     entry_location.delete(0,END)
     entry_remiza.delete(0,END)
 
-    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_worker)
+    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_who)
     show_workers()
 
 def show_worker_details():
-    i=listbox_lista_remizy.index(ACTIVE)
+    i=listbox_lista_worker.index(ACTIVE)
     name=workers[i].name
     location=workers[i].location
     remiza=workers[i].remiza
@@ -233,6 +307,12 @@ def show_worker_details():
     map_widget.set_zoom(17)
 
 #end
+
+#workers_in_users_commands
+
+
+#end
+
 
 #fire_command
 
@@ -290,16 +370,17 @@ def update_fire (i):
     entry_location.delete(0,END)
     entry_remiza.delete(0,END)
 
-    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_fire)
+    button_dodaj_obiekt.config(text='Dodaj obiekt', command=add_who)
     show_fires()
 
 def show_fire_details():
-    i=listbox_lista_remizy.index(ACTIVE)
+    i=listbox_lista_fire.index(ACTIVE)
     name=fires[i].name
     location=fires[i].location
 
     label_szczegoly_wartosc_name.config(text=name)
     label_szczegoly_wartosc_location.config(text=location)
+    label_szczegoly_wartosc_remiza.config(text='...')
 
     map_widget.set_position(fires[i].coordinates[0],fires[i].coordinates[1])
     map_widget.set_zoom(17)
@@ -308,7 +389,7 @@ def show_fire_details():
 
 
 
-
+#graphic
 
 root = Tk()
 root.geometry("1920x1080")
@@ -349,8 +430,8 @@ label_lista_worker=Label(ramka_lista_worker, text="Lista strażaków")
 label_lista_worker.grid(row=0, column=0,columnspan=2)
 listbox_lista_worker=Listbox(ramka_lista_worker, width=40, height=10)
 listbox_lista_worker.grid(row=1, column=0, columnspan=3)
-button_pokaz_szczegoly_obiektu=Button(ramka_lista_worker, text='Pokaż szczegóły', command=show_worker_details)
-button_pokaz_szczegoly_obiektu.grid(row=2, column=0)
+button_pokaz_szczegoly_worker=Button(ramka_lista_worker, text='Pokaż szczegóły', command=show_worker_details)
+button_pokaz_szczegoly_worker.grid(row=2, column=0)
 button_usun_obiekt=Button(ramka_lista_worker, text='Usuń obiekt', command=remove_worker)
 button_usun_obiekt.grid(row=2, column=1)
 button_edytuj_obiekt=Button(ramka_lista_worker, text='Edytuj obiekt', command=edit_worker)
@@ -387,6 +468,8 @@ entry_remiza.grid(row=3, column=1)
 
 button_dodaj_obiekt=Button(ramka_formularz, text='Dodaj obiekt', command=add_who)
 button_dodaj_obiekt.grid(row=4, column=0, columnspan=2)
+button_default=Button(ramka_formularz,text='Domyślna lista',command=restore)
+button_default.grid(row=5,column=0,columnspan=2)
 
 #ramka_szczegoly_obiektow
 label_szczegoly_obiektow=Label(ramka_szczegoly_obiektow, text="Szczegoly obiektu:")
@@ -405,12 +488,13 @@ label_szczegoly_wartosc_remiza=Label(ramka_szczegoly_obiektow, text="....")
 label_szczegoly_wartosc_remiza.grid(row=1, column=7)
 
 #ramka_mapa
+
 map_widget = tkintermapview.TkinterMapView(ramka_mapa, width=1200, height=500, corner_radius=5)
 map_widget.grid(row=0, column=0, columnspan=2)
 map_widget.set_position(52.53,21.0)
 map_widget.set_zoom(6)
 
-
+#end
 
 
 
