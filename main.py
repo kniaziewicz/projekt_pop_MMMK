@@ -15,7 +15,7 @@ class User:
         self.name = name
         self.location = location
         self.coordinates = self.get_coordinates()
-        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1])
+        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1], marker_color_circle='blue')
 
     def get_coordinates(self) -> list:
         import requests
@@ -36,7 +36,7 @@ class Worker:
         self.location = location
         self.remiza = remiza
         self.coordinates = self.get_coordinates()
-        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1])
+        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1], marker_color_outside='black')
 
     def get_coordinates(self) -> list:
         import requests
@@ -76,7 +76,7 @@ class Wremizach:
         self.name = name
         self.location = location
         self.coordinates = self.get_coordinates()
-        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1])
+        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1], marker_color_outside='black')
 
     def get_coordinates(self) -> list:
         import requests
@@ -108,12 +108,25 @@ def make_wremiza():
 
     show_wremiza()
     button_pokaz_szczegoly_worker.configure(command=show_wremiza_details)
+    button_usun_worker.configure(command=remove_wremiza)
 
 
 def show_wremiza():
     listbox_lista_worker.delete(0,END)
     for idx,strazak in enumerate(wremiza):
         listbox_lista_worker.insert(idx,f'{idx+1}. {strazak.name}')
+
+def remove_wremiza ():
+    i=listbox_lista_worker.index(ACTIVE)
+    wremiza[i].marker.delete()
+
+
+    for idx, val in enumerate(workers):
+        if workers[idx].name==wremiza[i].name:
+            workers.pop(idx)
+
+    wremiza.pop(i)
+    show_wremiza()
 
 def restore():
     show_workers()
@@ -122,9 +135,10 @@ def restore():
 
     for idx, val in enumerate(workers):
         workers[idx].coordinates = workers[idx].get_coordinates()
-        workers[idx].marker = map_widget.set_marker(workers[idx].coordinates[0], workers[idx].coordinates[1])
+        workers[idx].marker = map_widget.set_marker(workers[idx].coordinates[0], workers[idx].coordinates[1], marker_color_outside='black')
 
     button_pokaz_szczegoly_worker.configure(command=show_worker_details)
+    button_usun_worker.configure(command=remove_worker)
 
 def show_wremiza_details():
     i=listbox_lista_worker.index(ACTIVE)
@@ -432,8 +446,8 @@ listbox_lista_worker=Listbox(ramka_lista_worker, width=40, height=10)
 listbox_lista_worker.grid(row=1, column=0, columnspan=3)
 button_pokaz_szczegoly_worker=Button(ramka_lista_worker, text='Pokaż szczegóły', command=show_worker_details)
 button_pokaz_szczegoly_worker.grid(row=2, column=0)
-button_usun_obiekt=Button(ramka_lista_worker, text='Usuń obiekt', command=remove_worker)
-button_usun_obiekt.grid(row=2, column=1)
+button_usun_worker=Button(ramka_lista_worker, text='Usuń obiekt', command=remove_worker)
+button_usun_worker.grid(row=2, column=1)
 button_edytuj_obiekt=Button(ramka_lista_worker, text='Edytuj obiekt', command=edit_worker)
 button_edytuj_obiekt.grid(row=2, column=2)
 
