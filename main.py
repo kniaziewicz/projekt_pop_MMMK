@@ -406,7 +406,7 @@ def show_fire_details():
 #graphic
 
 root = Tk()
-root.geometry("1920x1080")
+root.geometry("1200x800")
 root.title("Map Book MK")
 
 
@@ -419,19 +419,21 @@ ramka_lista_fire=Frame(root)
 ramka_formularz=Frame(root)
 ramka_szczegoly_obiektow=Frame(root)
 ramka_mapa=Frame(root)
+ramka_notki=Frame(root)
 
 ramka_lista_remizy.grid(row=0, column=0)
 ramka_lista_worker.grid(row=0, column=1)
 ramka_lista_fire.grid(row=0, column=2)
 ramka_formularz.grid(row=0, column=3)
-ramka_szczegoly_obiektow.grid(row=1, column=0, columnspan=2)
-ramka_mapa.grid(row=2, column=0, columnspan=2)
+ramka_szczegoly_obiektow.grid(row=1, column=1)
+ramka_mapa.grid(row=2, column=0, columnspan=4)
+ramka_notki.grid(row=3, column=0, columnspan=4)
 
 #ramka_lista_remizy
 label_lista_remizy=Label(ramka_lista_remizy, text="Lista placówek")
-label_lista_remizy.grid(row=0, column=0,columnspan=2)
+label_lista_remizy.grid(row=0, column=0)
 listbox_lista_remizy=Listbox(ramka_lista_remizy, width=40, height=10)
-listbox_lista_remizy.grid(row=1, column=0, columnspan=3)
+listbox_lista_remizy.grid(row=1, column=0,columnspan=3)
 button_pokaz_szczegoly_obiektu=Button(ramka_lista_remizy, text='Pokaz szczegóły', command=show_user_details)
 button_pokaz_szczegoly_obiektu.grid(row=2, column=0)
 button_usun_obiekt=Button(ramka_lista_remizy, text='Usuń obiekt', command=remove_user)
@@ -441,7 +443,7 @@ button_edytuj_obiekt.grid(row=2, column=2)
 
 #ramka_lista_worker
 label_lista_worker=Label(ramka_lista_worker, text="Lista strażaków")
-label_lista_worker.grid(row=0, column=0,columnspan=2)
+label_lista_worker.grid(row=0, column=0)
 listbox_lista_worker=Listbox(ramka_lista_worker, width=40, height=10)
 listbox_lista_worker.grid(row=1, column=0, columnspan=3)
 button_pokaz_szczegoly_worker=Button(ramka_lista_worker, text='Pokaż szczegóły', command=show_worker_details)
@@ -453,7 +455,7 @@ button_edytuj_obiekt.grid(row=2, column=2)
 
 #ramka_lista_fire
 label_lista_fire=Label(ramka_lista_fire, text="Lista pożarów")
-label_lista_fire.grid(row=0, column=0,columnspan=2)
+label_lista_fire.grid(row=0, column=0)
 listbox_lista_fire=Listbox(ramka_lista_fire, width=40, height=10)
 listbox_lista_fire.grid(row=1, column=0, columnspan=3)
 button_pokaz_szczegoly_obiektu=Button(ramka_lista_fire, text='Pokaż szczegóły', command=show_fire_details)
@@ -465,7 +467,7 @@ button_edytuj_obiekt.grid(row=2, column=2)
 
 #ramka_formularz
 label_formularz=Label(ramka_formularz, text="Formularz")
-label_formularz.grid(row=0, column=0, columnspan=2)
+label_formularz.grid(row=0, column=0)
 label_name=Label(ramka_formularz, text="Nazwa:")
 label_name.grid(row=1, column=0, sticky=W)
 label_location=Label(ramka_formularz, text="Współrzędne:")
@@ -481,13 +483,13 @@ entry_remiza=Entry(ramka_formularz)
 entry_remiza.grid(row=3, column=1)
 
 button_dodaj_obiekt=Button(ramka_formularz, text='Dodaj obiekt', command=add_who)
-button_dodaj_obiekt.grid(row=4, column=0, columnspan=2)
+button_dodaj_obiekt.grid(row=4, column=0)
 button_default=Button(ramka_formularz,text='Domyślna lista',command=restore)
-button_default.grid(row=5,column=0,columnspan=2)
+button_default.grid(row=5,column=0)
 
 #ramka_szczegoly_obiektow
 label_szczegoly_obiektow=Label(ramka_szczegoly_obiektow, text="Szczegoly obiektu:")
-label_szczegoly_obiektow.grid(row=0, column=0)
+label_szczegoly_obiektow.grid(row=0, column=0, columnspan=3)
 label_szczegoly_name=Label(ramka_szczegoly_obiektow, text="Nazwa:")
 label_szczegoly_name.grid(row=1, column=0)
 label_szczegoly_wartosc_name=Label(ramka_szczegoly_obiektow, text="....")
@@ -504,9 +506,13 @@ label_szczegoly_wartosc_remiza.grid(row=1, column=7)
 #ramka_mapa
 
 map_widget = tkintermapview.TkinterMapView(ramka_mapa, width=1200, height=500, corner_radius=5)
-map_widget.grid(row=0, column=0, columnspan=2)
+map_widget.grid(row=0, column=0)
 map_widget.set_position(52.53,21.0)
 map_widget.set_zoom(6)
+
+#ramka_notki
+label_notatka1=Label(ramka_notki, text="UWAGA: edytowanie wybranego pracownika należy wykonaywać tylko podczas wybranego domyślnego podglądu listy.")
+label_notatka1.grid(row=0, column=0)
 
 #end
 
