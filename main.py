@@ -8,6 +8,7 @@ users:list=[]
 workers:list=[]
 fires:list=[]
 wremiza:list=[]
+wremizaf:list=[]
 
 #Placówki
 class User:
@@ -29,7 +30,7 @@ class User:
         print(latitude)
         return [latitude, longitude]
 
-#strażacy
+#strażacy i ogień
 class Worker:
     def __init__(self,name,location,remiza):
         self.name = name
@@ -50,11 +51,11 @@ class Worker:
         print(latitude)
         return [latitude, longitude]
 
-#pożary
 class Fire:
-    def __init__(self,name,location):
+    def __init__(self,name,location,remiza):
         self.name = name
         self.location = location
+        self.remiza = remiza
         self.coordinates = self.get_coordinates()
         self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1])
 
@@ -70,31 +71,81 @@ class Fire:
         print(latitude)
         return [latitude, longitude]
 
-#strazacy_w_danej_remizie
-class Wremizach:
-    def __init__(self,name,location):
-        self.name = name
-        self.location = location
-        self.coordinates = self.get_coordinates()
-        self.marker = map_widget.set_marker(self.coordinates[0],self.coordinates[1], marker_color_outside='black')
 
-    def get_coordinates(self) -> list:
-        import requests
-        from bs4 import BeautifulSoup
-        url = f"https://pl.wikipedia.org/wiki/{self.location}"
-        response = requests.get(url).text
-        response_html = BeautifulSoup(response, "html.parser")
-        longitude = float(response_html.select(".longitude")[1].text.replace(",", "."))
-        latitude = float(response_html.select(".latitude")[1].text.replace(",", "."))
-        print(longitude)
-        print(latitude)
-        return [latitude, longitude]
+#wremiza(f)_commands
+def make_wremizaf():
 
-#wremiza_commands
+
+    for idx,val in enumerate(wremizaf):
+        wremiza[idx].marker.delete()
+
+    for idx,val in enumerate(wremiza):
+        wremiza[idx].marker.delete()
+
+    for idx,val in enumerate(workers):
+        workers[idx].marker.delete()
+
+    listbox_lista_worker.delete(0,END)
+
+    wremizaf.clear()
+    n=listbox_lista_remizy.index(ACTIVE)
+    i=users[n].name
+
+    for idx,val in enumerate(fires):
+        if fires[idx].remiza == i:
+            val = Fire(name=fires[idx].name,location=fires[idx].location,remiza=fires[idx].remiza)
+            wremizaf.append(val)
+        fires[idx].marker.delete()
+
+    show_wremizaf()
+    button_pokaz_szczegoly_fire.config(command=show_wremizaf_details)
+    button_usun_fire.config(command=remove_wremizaf)
+
+
+def show_wremizaf():
+    listbox_lista_fire.delete(0,END)
+    for idx,val in enumerate(wremizaf):
+        listbox_lista_fire.insert(idx,f'{idx+1}. {val.name}')
+
+def remove_wremizaf ():
+    i=listbox_lista_fire.index(ACTIVE)
+    wremizaf[i].marker.delete()
+
+
+    for idx, val in enumerate(fires):
+        if fires[idx].name==wremizaf[i].name:
+            fires.pop(idx)
+
+    wremizaf.pop(i)
+    show_wremizaf()
+
+def show_wremizaf_details():
+    i=listbox_lista_fire.index(ACTIVE)
+    name=wremizaf[i].name
+    location=wremizaf[i].location
+    remiza=wremizaf[i].remiza
+
+    label_szczegoly_wartosc_name.config(text=name)
+    label_szczegoly_wartosc_location.config(text=location)
+    label_szczegoly_wartosc_remiza.config(text=remiza)
+
+    map_widget.set_position(wremiza[i].coordinates[0],wremiza[i].coordinates[1])
+    map_widget.set_zoom(17)
+
+
+
 def make_wremiza():
 
     for idx, val in enumerate(wremiza):
         wremiza[idx].marker.delete()
+
+    for idx, val in enumerate(wremizaf):
+        wremizaf[idx].marker.delete()
+
+    for idx,val in enumerate(fires):
+        fires[idx].marker.delete()
+
+    listbox_lista_fire.delete(0,END)
 
     wremiza.clear()
     n=listbox_lista_remizy.index(ACTIVE)
@@ -102,7 +153,7 @@ def make_wremiza():
 
     for idx,strazak in enumerate(workers):
         if workers[idx].remiza==i:
-            strazak = Wremizach(name=workers[idx].name,location=workers[idx].location)
+            strazak = Worker(name=workers[idx].name,location=workers[idx].location, remiza=workers[idx].remiza)
             wremiza.append(strazak)
         workers[idx].marker.delete()
 
@@ -137,17 +188,28 @@ def restore():
         workers[idx].coordinates = workers[idx].get_coordinates()
         workers[idx].marker = map_widget.set_marker(workers[idx].coordinates[0], workers[idx].coordinates[1], marker_color_outside='black')
 
+    show_fires()
+    for idx, val in enumerate(wremizaf):
+        wremizaf[idx].marker.delete()
+
+    for idx, val in enumerate(fires):
+        fires[idx].coordinates = fires[idx].get_coordinates()
+        fires[idx].marker = map_widget.set_marker(fires[idx].coordinates[0], fires[idx].coordinates[1])
+
     button_pokaz_szczegoly_worker.configure(command=show_worker_details)
     button_usun_worker.configure(command=remove_worker)
+    button_usun_fire.configure(command=remove_fire)
+    button_pokaz_szczegoly_fire.configure(command=show_fire_details)
 
 def show_wremiza_details():
     i=listbox_lista_worker.index(ACTIVE)
     name=wremiza[i].name
     location=wremiza[i].location
+    remiza=wremiza[i].remiza
 
     label_szczegoly_wartosc_name.config(text=name)
     label_szczegoly_wartosc_location.config(text=location)
-    label_szczegoly_wartosc_remiza.config(text='...')
+    label_szczegoly_wartosc_remiza.config(text=remiza)
 
     map_widget.set_position(wremiza[i].coordinates[0],wremiza[i].coordinates[1])
     map_widget.set_zoom(17)
@@ -218,7 +280,7 @@ def update_user (i):
 
     users[i].marker.delete()
     users[i].coordinates=users[i].get_coordinates()
-    users[i].marker=map_widget.set_marker(users[i].coordinates[0],users[i].coordinates[1])
+    users[i].marker=map_widget.set_marker(users[i].coordinates[0],users[i].coordinates[1], marker_color_circle='blue')
 
     entry_name.delete(0,END)
     entry_location.delete(0,END)
@@ -240,6 +302,21 @@ def show_user_details():
 
     map_widget.set_position(users[i].coordinates[0],users[i].coordinates[1])
     map_widget.set_zoom(10)
+
+def show_user_detailsf():
+    i=listbox_lista_remizy.index(ACTIVE)
+    name=users[i].name
+    location=users[i].location
+
+    make_wremizaf()
+
+    label_szczegoly_wartosc_name.config(text=name)
+    label_szczegoly_wartosc_location.config(text=location)
+    label_szczegoly_wartosc_remiza.config(text='...')
+
+    map_widget.set_position(users[i].coordinates[0],users[i].coordinates[1])
+    map_widget.set_zoom(10)
+
 #end
 
 #workers_command
@@ -298,7 +375,7 @@ def update_worker (i):
 
     workers[i].marker.delete()
     workers[i].coordinates=workers[i].get_coordinates()
-    workers[i].marker=map_widget.set_marker(workers[i].coordinates[0],workers[i].coordinates[1])
+    workers[i].marker=map_widget.set_marker(workers[i].coordinates[0],workers[i].coordinates[1], marker_color_outside='black')
 
     entry_name.delete(0,END)
     entry_location.delete(0,END)
@@ -333,7 +410,8 @@ def show_worker_details():
 def add_fire ():
     zmienna_nazwa=entry_name.get()
     zmienna_coordinates=entry_location.get()
-    fire = Fire(name=zmienna_nazwa, location=zmienna_coordinates)
+    zmienna_remiza=entry_remiza.get()
+    fire = Fire(name=zmienna_nazwa, location=zmienna_coordinates, remiza=zmienna_remiza)
     fires.append(fire)
 
     entry_name.delete(0,END)
@@ -362,9 +440,11 @@ def edit_fire ():
     i=listbox_lista_fire.index(ACTIVE)
     name=fires[i].name
     location=fires[i].location
+    remiza=fires[i].remiza
 
     entry_name.insert(0,name)
     entry_location.insert(0,location)
+    entry_remiza.insert(0,remiza)
 
     button_dodaj_obiekt.config(text='zapisz', command=lambda: update_fire(i))
 
@@ -372,9 +452,11 @@ def edit_fire ():
 def update_fire (i):
     new_name=entry_name.get()
     new_location=entry_location.get()
+    new_remiza=entry_remiza.get()
 
     fires[i].name=new_name
     fires[i].location=new_location
+    fires[i].remiza=new_remiza
 
     fires[i].marker.delete()
     fires[i].coordinates=fires[i].get_coordinates()
@@ -391,10 +473,11 @@ def show_fire_details():
     i=listbox_lista_fire.index(ACTIVE)
     name=fires[i].name
     location=fires[i].location
+    remiza=fires[i].remiza
 
     label_szczegoly_wartosc_name.config(text=name)
     label_szczegoly_wartosc_location.config(text=location)
-    label_szczegoly_wartosc_remiza.config(text='...')
+    label_szczegoly_wartosc_remiza.config(text=remiza)
 
     map_widget.set_position(fires[i].coordinates[0],fires[i].coordinates[1])
     map_widget.set_zoom(17)
@@ -434,8 +517,10 @@ label_lista_remizy=Label(ramka_lista_remizy, text="Lista placówek")
 label_lista_remizy.grid(row=0, column=0)
 listbox_lista_remizy=Listbox(ramka_lista_remizy, width=40, height=10)
 listbox_lista_remizy.grid(row=1, column=0,columnspan=3)
-button_pokaz_szczegoly_obiektu=Button(ramka_lista_remizy, text='Pokaz szczegóły', command=show_user_details)
+button_pokaz_szczegoly_obiektu=Button(ramka_lista_remizy, text='Pokaz pracowników', command=show_user_details)
 button_pokaz_szczegoly_obiektu.grid(row=2, column=0)
+button_pokaz_pozary=Button(ramka_lista_remizy, text='Pokaz pożary', command=show_user_detailsf)
+button_pokaz_pozary.grid(row=3, column=0)
 button_usun_obiekt=Button(ramka_lista_remizy, text='Usuń obiekt', command=remove_user)
 button_usun_obiekt.grid(row=2, column=1)
 button_edytuj_obiekt=Button(ramka_lista_remizy, text='Edytuj obiekt', command=edit_user)
@@ -458,12 +543,12 @@ label_lista_fire=Label(ramka_lista_fire, text="Lista pożarów")
 label_lista_fire.grid(row=0, column=0)
 listbox_lista_fire=Listbox(ramka_lista_fire, width=40, height=10)
 listbox_lista_fire.grid(row=1, column=0, columnspan=3)
-button_pokaz_szczegoly_obiektu=Button(ramka_lista_fire, text='Pokaż szczegóły', command=show_fire_details)
-button_pokaz_szczegoly_obiektu.grid(row=2, column=0)
-button_usun_obiekt=Button(ramka_lista_fire, text='Usuń obiekt', command=remove_fire)
-button_usun_obiekt.grid(row=2, column=1)
-button_edytuj_obiekt=Button(ramka_lista_fire, text='Edytuj obiekt', command=edit_fire)
-button_edytuj_obiekt.grid(row=2, column=2)
+button_pokaz_szczegoly_fire=Button(ramka_lista_fire, text='Pokaż szczegóły', command=show_fire_details)
+button_pokaz_szczegoly_fire.grid(row=2, column=0)
+button_usun_fire=Button(ramka_lista_fire, text='Usuń obiekt', command=remove_fire)
+button_usun_fire.grid(row=2, column=1)
+button_edytuj_fire=Button(ramka_lista_fire, text='Edytuj obiekt', command=edit_fire)
+button_edytuj_fire.grid(row=2, column=2)
 
 #ramka_formularz
 label_formularz=Label(ramka_formularz, text="Formularz")
@@ -511,7 +596,7 @@ map_widget.set_position(52.53,21.0)
 map_widget.set_zoom(6)
 
 #ramka_notki
-label_notatka1=Label(ramka_notki, text="UWAGA: edytowanie wybranego pracownika należy wykonaywać tylko podczas wybranego domyślnego podglądu listy.")
+label_notatka1=Label(ramka_notki, text="UWAGA: edytowanie należy wykonaywać tylko podczas wybranego domyślnego podglądu listy.")
 label_notatka1.grid(row=0, column=0)
 
 #end
